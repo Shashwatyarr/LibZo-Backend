@@ -1,27 +1,31 @@
 const nodemailer = require("nodemailer");
 
 exports.sendOtpEmail = async (email, otp) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+  try {
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: Number(process.env.EMAIL_PORT),
+      secure: false, // 587 ke liye false
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
 
-  const sendOtpEmail = {
-    from: `"Libzo" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: "Your Libzo OTP",
-    html: `
-      <div style="font-family: Arial, sans-serif;">
+    await transporter.sendMail({
+      from: `"Libzo" <no-reply@libzo.com>`,
+      to: email,
+      subject: "Your Libzo OTP",
+      html: `
         <h2>Libzo Verification Code</h2>
-        <p>Your OTP is:</p>
-        <h1 style="letter-spacing: 4px;">${otp}</h1>
-        <p>This code is valid for 5 minutes.</p>
-      </div>
-    `,
-  };
+        <h1>${otp}</h1>
+        <p>This OTP is valid for 5 minutes.</p>
+      `,
+    });
 
-  await transporter.sendMail(sendOtpEmail);
+    console.log("✅ OTP email sent");
+  } catch (err) {
+    console.error("❌ OTP email error:", err);
+    throw err;
+  }
 };
