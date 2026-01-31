@@ -1,40 +1,27 @@
-const axios = require("axios");
+const nodemailer = require("nodemailer");
 
 exports.sendOtpEmail = async (email, otp) => {
-  try {
-    const res = await axios.post(
-      "https://api.brevo.com/v3/smtp/email",
-      {
-        sender: {
-          name: process.env.BREVO_SENDER_NAME,
-          email: process.env.BREVO_SENDER_EMAIL,
-        },
-        to: [
-          {
-            email: email,
-          },
-        ],
-        subject: "Your Libzo OTP",
-        htmlContent: `
-          <div style="font-family: Arial, sans-serif;">
-            <h2>Libzo Verification Code</h2>
-            <p>Your OTP is:</p>
-            <h1 style="letter-spacing: 4px;">${otp}</h1>
-            <p>This code is valid for 5 minutes.</p>
-          </div>
-        `,
-      },
-      {
-        headers: {
-          "api-key": process.env.BREVO_API_KEY,
-          "Content-Type": "application/json",
-        },
-      },
-    );
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
 
-    console.log("✅ OTP email sent:", res.data);
-  } catch (err) {
-    console.error("❌ OTP email error:", err.response?.data || err.message);
-    throw err;
-  }
+  const sendOtpEmail = {
+    from: `"Libzo" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: "Your Libzo OTP",
+    html: `
+      <div style="font-family: Arial, sans-serif;">
+        <h2>Libzo Verification Code</h2>
+        <p>Your OTP is:</p>
+        <h1 style="letter-spacing: 4px;">${otp}</h1>
+        <p>This code is valid for 5 minutes.</p>
+      </div>
+    `,
+  };
+
+  await transporter.sendMail(sendOtpEmail);
 };
