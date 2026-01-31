@@ -7,7 +7,6 @@ const { sendOtp } = require("./otp_controller");
 const { generateAndSendOtp } = require("../utils/otp_service");
 
 exports.signup = async (req, res) => {
-  console.log("SIGNUP HIT");
   try {
     const { username, fullName, email, password } = req.body;
 
@@ -27,8 +26,9 @@ exports.signup = async (req, res) => {
 
     await newUser.save();
 
-    // send OTP
-    await generateAndSendOtp(email);
+    generateAndSendOtp(email).catch((err) =>
+      console.error("OTP email error:", err.message),
+    );
 
     res.json({
       success: true,
@@ -44,7 +44,6 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     const existingUser = await user.findOne({ email });
-
     if (!existingUser) {
       return res.status(400).json({ message: "User not found" });
     }
@@ -58,15 +57,15 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // send OTP
-    await generateAndSendOtp(email);
+    generateAndSendOtp(email).catch((err) =>
+      console.error("OTP email error:", err.message),
+    );
 
     res.json({
       success: true,
       message: "OTP sent",
     });
   } catch (err) {
-    console.log(err);
     res.status(500).json({ message: "Server Error" });
   }
 };
