@@ -2,13 +2,24 @@ const Post = require("../models/posts");
 
 exports.createPost = async (req, res) => {
   try {
-    const { images, text } = req.body;
+    const { text } = req.body;
     const userId = req.user.id;
+
+    if (!text || text.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "Post text is required",
+      });
+    }
+    let images = "";
+    if (req.file) {
+      images = "/uploads/posts/${req.file.filename}";
+    }
 
     const newPost = new Post({
       userId,
       text,
-      image: images || "",
+      image: images,
     });
 
     await newPost.save();
