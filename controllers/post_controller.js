@@ -13,7 +13,7 @@ exports.createPost = async (req, res) => {
     }
     let images = "";
     if (req.file) {
-      images = "/uploads/posts/${req.file.filename}";
+      images = `/uploads/posts/${req.file.filename}`;
     }
 
     const newPost = new Post({
