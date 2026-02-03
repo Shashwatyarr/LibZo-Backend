@@ -7,6 +7,11 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String }, // optional if google login
   googleId: { type: String, default: null },
+  telegram: {
+    chatId: { type: String, default: null },
+    telegramUsername: { type: String, default: null },
+    linkedAt: { type: Date },
+  },
 
   // ---------- PROFILE ----------
   profile: {

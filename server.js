@@ -1,6 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+dotenv.config({
+  path: __dirname + "/.env",
+});
 const connectDb = require("./config/db");
 const authRoutes = require("./routes/auth_routes");
 const postRoutes = require("./routes/post_routes");
@@ -8,7 +11,6 @@ const commentRoutes = require("./routes/comment_routes");
 const { toggleLike } = require("./controllers/post_controller");
 const auth = require("./middleware/auth");
 const profileRoutes = require("./routes/profile_routes");
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
