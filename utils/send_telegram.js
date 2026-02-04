@@ -3,7 +3,6 @@ const User = require("../models/User");
 
 const bot = new Bot(process.env.AUTH_BOT_TOKEN);
 
-// ───── LINKING ─────
 bot.command("start", async (ctx) => {
   const libzoUsername = ctx.match?.trim();
 
@@ -17,7 +16,6 @@ bot.command("start", async (ctx) => {
 
   const telegramUsername = ctx.from.username || null;
 
-  // 👉 LIBZO account me telegram data save
   await User.updateOne(
     { username: libzoUsername },
     {
@@ -40,8 +38,6 @@ Now OTP will arrive here automatically.`,
 });
 
 bot.start();
-
-// ───── OTP SENDER ─────
 
 exports.sendOtpTelegram = async (libzoUsername, otp) => {
   const user = await User.findOne({ username: libzoUsername });

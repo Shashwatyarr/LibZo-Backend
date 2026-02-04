@@ -1,32 +1,67 @@
 const Post = require("../models/posts");
+const { uploadImageToTelegram } = require("../utils/telegram_media");
+const mongoose = require("mongoose");
 
+// ───── CREATE POST ─────
 exports.createPost = async (req, res) => {
   try {
     const { text } = req.body;
     const userId = req.user.id;
 
+    // 1. Text validation
     if (!text || text.trim() === "") {
       return res.status(400).json({
         success: false,
         message: "Post text is required",
       });
     }
-    let images = "";
-    if (req.file) {
-      images = `/uploads/posts/${req.file.filename}`;
+
+    let images = [];
+
+    // 2. Image handling
+    if (req.files && req.files.length > 0) {
+      // max 4 rule
+      if (req.files.length > 4) {
+        return res.status(400).json({
+          success: false,
+          message: "Max 4 images allowed",
+        });
+      }
+
+      // ───── ATOMIC UPLOAD GUARD ─────
+      try {
+        for (const file of req.files) {
+          const tgResult = await uploadImageToTelegram(file);
+
+          images.push({
+            file_id: tgResult.file_id,
+            width: tgResult.width,
+            height: tgResult.height,
+            size: tgResult.size,
+          });
+        }
+      } catch (uploadErr) {
+        // Agar ek bhi image fail → post nahi banega
+        return res.status(502).json({
+          success: false,
+          message: "Image upload failed, please retry",
+        });
+      }
     }
 
+    // 3. Create Post
     const newPost = new Post({
       userId,
       text,
-      image: images,
+      images,
     });
 
     await newPost.save();
-    console.log(newPost);
+
     res.status(201).json({
       success: true,
       message: "Post created successfully",
+      post: newPost,
     });
   } catch (err) {
     res.status(500).json({
@@ -36,17 +71,27 @@ exports.createPost = async (req, res) => {
   }
 };
 
+// ───── GET POSTS ─────
 exports.getPosts = async (req, res) => {
   try {
-    const posts = await Post.find()
-      .populate(
-        "userId",
-        "username fullName profilePicture createdAt likes commentCount image",
-      )
-      .sort({ createdAt: -1 });
-    console.log(posts[0].likes);
+    const page = Number(req.query.page) || 1;
+    const limit = 5;
 
-    res.json(posts);
+    const posts = await Post.find()
+
+      .populate("userId", "username fullName profilePicture")
+
+      .sort({ createdAt: -1 })
+
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.json({
+      success: true,
+      page,
+      count: posts.length,
+      posts,
+    });
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -55,8 +100,7 @@ exports.getPosts = async (req, res) => {
   }
 };
 
-const mongoose = require("mongoose");
-
+// ───── TOGGLE LIKE ─────
 exports.toggleLike = async (req, res) => {
   try {
     const postId = req.params.postId;
@@ -79,8 +123,6 @@ exports.toggleLike = async (req, res) => {
     }
 
     await post.save();
-
-    console.log("Saved likes:", post.likes);
 
     res.json({
       success: true,
