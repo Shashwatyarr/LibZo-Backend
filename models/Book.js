@@ -1,60 +1,97 @@
 const mongoose = require("mongoose");
 
 const BookSchema = new mongoose.Schema({
-  owner: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+  // ---------- CORE IDENTITY ----------
+  openLibraryId: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+
+  title: {
+    type: String,
     required: true,
+    index: true,
   },
 
-  // ---------- BOOK INFO ----------
-  title: { type: String, required: true },
-  author: { type: String },
-  isbn: { type: String },
-  coverImage: { type: String },
-  genre: [{ type: String }],
-  totalPages: { type: Number },
-
-  // ---------- SOURCE ----------
-  source: {
-    type: String,
-    enum: ["manual", "isbn", "kindle"],
-    default: "manual",
-  },
-
-  // ---------- OWNERSHIP ----------
-  ownershipType: {
-    type: String,
-    enum: ["owned", "rented", "wishlist"],
-    default: "owned",
-  },
-
-  // ---------- READING STATUS ----------
-  readingStatus: {
-    type: String,
-    enum: ["not-started", "reading", "completed"],
-    default: "not-started",
-  },
-
-  currentPage: { type: Number, default: 0 },
-
-  // ---------- PROGRESS HISTORY ----------
-  sessions: [
+  authors: [
     {
-      startTime: Date,
-      endTime: Date,
-      pagesRead: Number,
-      mood: {
-        type: String,
-        enum: ["happy", "sad", "focused", "tired", "excited"],
-      },
+      name: String,
+      openLibraryAuthorId: String,
     },
   ],
 
-  startedAt: Date,
-  completedAt: Date,
+  isbn: [{ type: String }],
 
-  createdAt: { type: Date, default: Date.now },
+  description: String,
+
+  coverUrl: String,
+
+  publishYear: Number,
+
+  totalPages: Number,
+
+  // ---------- DISCOVERY / MARKETPLACE ----------
+  categories: [
+    {
+      type: String,
+      index: true,
+    },
+  ],
+
+  tags: [String],
+
+  language: String,
+
+  popularityScore: {
+    type: Number,
+    default: 0,
+    index: true,
+  },
+
+  isFeatured: {
+    type: Boolean,
+    default: false,
+    index: true,
+  },
+
+  // ---------- SOCIAL AGGREGATION ----------
+  ratings: {
+    average: { type: Number, default: 0 },
+    count: { type: Number, default: 0 },
+  },
+
+  reviewsCount: {
+    type: Number,
+    default: 0,
+  },
+
+  // ---------- SOURCE TRACKING ----------
+  source: {
+    type: String,
+    enum: ["seeded", "openlibrary", "manual"],
+    default: "openlibrary",
+  },
+
+  // ---------- META ----------
+  addedAt: {
+    type: Date,
+    default: Date.now,
+  },
+
+  lastSyncedAt: Date,
+});
+
+// ---------- INDEXES FOR FAST FEED ----------
+BookSchema.index({
+  popularityScore: -1,
+  reviewsCount: -1,
+});
+
+// Text search
+BookSchema.index({
+  title: "text",
+  "authors.name": "text",
 });
 
 module.exports = mongoose.model("Book", BookSchema);

@@ -19,6 +19,7 @@ connectDb();
 
 app.use(cors());
 app.use(express.json());
+app.use("/library", require("./routes/library_routes"));
 app.use("/media", require("./routes/media_routes"));
 app.use("/api/auth", authRoutes);
 app.use("/posts", postRoutes);
