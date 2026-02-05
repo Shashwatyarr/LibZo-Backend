@@ -7,32 +7,37 @@ const {
   getCategories,
   getByCategory,
   getBook,
+  increasePopularity,
 } = require("../controllers/library_controller");
 
 const { searchBooks } = require("../controllers/book_searchcontroller");
 
 // All books page
-// GET /api/library/all
+// GET /library/all
 router.get("/all", getAllBooks);
 
 // Trending page
-// GET /api/library/trending
+// GET /library/trending
 router.get("/trending", getTrending);
 
 // List of categories
-// GET /api/library/categories
+// GET /library/categories
 router.get("/categories", getCategories);
 
 // Books by category (default Fiction handled in controller)
-// GET /api/library/category/:name
+// GET /library/category/:name
 router.get("/category/:name", getByCategory);
 
 // Single book detail
-// GET /api/library/book/:id
+// GET /library/book/:id
 router.get("/book/:id", getBook);
 
 //search books
-//GET /api/library/search?q=searchTerm
+//GET /library/search?q=searchTerm
 router.get("/search", searchBooks);
+
+//trending page popularity increase
+//POST /library/popularity/:id
+router.get("/popularity/:id", increasePopularity);
 
 module.exports = router;

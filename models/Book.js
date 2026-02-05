@@ -82,7 +82,6 @@ const BookSchema = new mongoose.Schema({
   lastSyncedAt: Date,
 });
 
-// ---------- INDEXES FOR FAST FEED ----------
 BookSchema.index({
   popularityScore: -1,
   reviewsCount: -1,

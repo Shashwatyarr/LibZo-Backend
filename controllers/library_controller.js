@@ -169,3 +169,33 @@ exports.getBook = async (req, res) => {
     });
   }
 };
+
+// ===== INCREASE POPULARITY =====
+exports.increasePopularity = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const book = await Book.findByIdAndUpdate(
+      id,
+      { $inc: { popularityScore: 1 } },
+      { new: true },
+    );
+
+    if (!book) {
+      return res.status(404).json({
+        success: false,
+        message: "Book not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      popularity: book.popularityScore,
+    });
+  } catch (e) {
+    res.status(500).json({
+      success: false,
+      message: e.message,
+    });
+  }
+};

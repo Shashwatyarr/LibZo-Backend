@@ -11,6 +11,7 @@ const commentRoutes = require("./routes/comment_routes");
 const { toggleLike } = require("./controllers/post_controller");
 const auth = require("./middleware/auth");
 const profileRoutes = require("./routes/profile_routes");
+const review = require("./models/review");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -26,6 +27,7 @@ app.use("/posts", postRoutes);
 app.use("/comments", commentRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/uploads", express.static("uploads"));
+app.use("/api/review", require("./routes/review_route"));
 
 app.get("/", (req, res) => {
   res.json({
