@@ -13,10 +13,15 @@ exports.searchBooks = async (req, res) => {
   }
 
   // 1. Local search
-  const local = await Book.find({
-    $text: { $search: query },
-  })
+  const local = await Book.find(
+    {
+      $text: { $search: query },
+    },
+
+    { score: { $meta: "textScore" } },
+  )
     .sort({
+      score: { $meta: "textScore" },
       popularityScore: -1,
       reviewsCount: -1,
     })

@@ -180,7 +180,7 @@ exports.increasePopularity = async (req, res) => {
       { $inc: { popularityScore: 1 } },
       { new: true },
     );
-
+    console.log("Updated Popularity:", book.popularityScore);
     if (!book) {
       return res.status(404).json({
         success: false,
