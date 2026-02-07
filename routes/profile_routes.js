@@ -7,6 +7,12 @@ const {
   getProfileCompleteness,
   getUserLibrary,
   uploadProfilePhoto,
+  followUser,
+  unfollowUser,
+  getFollowers,
+  getFollowing,
+  getUserPosts,
+  getUserProfile,
 } = require("../controllers/profile_controller");
 
 const authMiddleware = require("../middleware/auth");
@@ -16,11 +22,21 @@ router.put("/update", authMiddleware, updateProfile);
 router.get("/completion", authMiddleware, getProfileCompleteness);
 router.get("/library", authMiddleware, getUserLibrary);
 
+router.post("/follow/:userId", authMiddleware, followUser);
+router.post("/unfollow/:userId", authMiddleware, unfollowUser);
+
+router.get("/followers/:userId", getFollowers);
+router.get("/following/:userId", getFollowing);
+
 router.post(
   "/upload-photo",
   authMiddleware,
   upload.single("profileImage"),
   uploadProfilePhoto,
 );
+router.get("/:id", authMiddleware, getUserProfile);
+
+// GET USER POSTS
+router.get("/posts/:id", authMiddleware, getUserPosts);
 
 module.exports = router;

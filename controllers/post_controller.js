@@ -133,3 +133,45 @@ exports.toggleLike = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+exports.deletePost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.user.id;
+
+    if (!mongoose.Types.ObjectId.isValid(postId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid post id",
+      });
+    }
+
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    if (post.userId.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: "You can delete only your own posts",
+      });
+    }
+
+    await Post.findByIdAndDelete(postId);
+
+    res.json({
+      success: true,
+      message: "Post deleted successfully",
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};

@@ -1,10 +1,11 @@
 const User = require("../models/User");
 const Book = require("../models/Book");
-const {
-  findOneAndUpdate,
-  findById,
-  findByIdAndDelete,
-} = require("../models/posts");
+const Post = require("../models/posts");
+// const {
+//   findOneAndUpdate,
+//   findById,
+//   findByIdAndDelete,
+// } = require("../models/posts");
 
 const Profile_Fields = [
   "profile.bio",
@@ -134,6 +135,217 @@ exports.uploadProfilePhoto = async (req, res) => {
     res.status(500).json({
       success: false,
       message: err.message,
+    });
+  }
+};
+
+exports.followUser = async (req, res) => {
+  try {
+    const myId = req.user.id;
+    const targetId = req.params.userId;
+
+    if (myId === targetId) {
+      return res.status(400).json({
+        success: false,
+        message: "You cannot follow yourself",
+      });
+    }
+
+    const me = await User.findById(myId);
+    const target = await User.findById(targetId);
+
+    if (!target) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Already following check
+    if (me.following.includes(targetId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Already following",
+      });
+    }
+
+    // ✅ ONE WAY RELATION
+    await User.findByIdAndUpdate(myId, {
+      $addToSet: { following: targetId },
+    });
+
+    await User.findByIdAndUpdate(targetId, {
+      $addToSet: { followers: myId },
+    });
+
+    res.json({
+      success: true,
+      message: "Followed successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.unfollowUser = async (req, res) => {
+  try {
+    const myId = req.user.id;
+    const targetId = req.params.userId;
+
+    const me = await User.findById(myId);
+
+    if (!me.following.includes(targetId)) {
+      return res.status(400).json({
+        success: false,
+        message: "You are not following this user",
+      });
+    }
+
+    await User.findByIdAndUpdate(myId, {
+      $pull: { following: targetId },
+    });
+
+    await User.findByIdAndUpdate(targetId, {
+      $pull: { followers: myId },
+    });
+
+    res.json({
+      success: true,
+      message: "Unfollowed successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.getFollowers = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const user = await User.findById(userId).populate(
+      "followers",
+      "username fullName profile.profileImage",
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      count: user.followers.length,
+      followers: user.followers,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ================= GET FOLLOWING =================
+exports.getFollowing = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const user = await User.findById(userId).populate(
+      "following",
+      "username fullName profile.profileImage",
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      count: user.following.length,
+      following: user.following,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+exports.getUserProfile = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const user = await User.findById(userId).select(
+      "-password -otp -otpExpiry",
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // extra stats
+    const postsCount = await Post.countDocuments({
+      userId: userId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      user: {
+        _id: user._id,
+        username: user.username,
+        fullName: user.fullName,
+        bio: user.bio || "",
+        location: user.location || "",
+        profilePic: user.profilePic || null,
+        followers: user.followers || [],
+        following: user.following || [],
+        postsCount,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Server Error: " + err.message,
+    });
+  }
+};
+
+// ================= GET USER POSTS =================
+exports.getUserPosts = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    console.log("GET POSTS FOR USER:", userId);
+
+    const posts = await Post.find({ userId: userId })
+      .populate("userId", "username fullName profilePic")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      posts,
+    });
+  } catch (err) {
+    console.log("POST FETCH ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server Error: " + err.message,
     });
   }
 };

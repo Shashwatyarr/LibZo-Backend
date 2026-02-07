@@ -43,7 +43,20 @@ const UserSchema = new mongoose.Schema({
       ref: "Book",
     },
   ],
+  // ---------- SOCIAL CONNECTIONS ----------
+  followers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
 
+  following: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
   // ---------- ANALYTICS (CACHEABLE) ----------
   analytics: {
     totalBooksRead: { type: Number, default: 0 },
