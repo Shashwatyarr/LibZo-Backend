@@ -37,40 +37,46 @@ const calculateProfileCompleteness = (user) => {
   return Math.round((completed / Profile_Fields.length) * 100);
 };
 
-exports.getProfile = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const user = await User.findById(userId)
-      .select("-password -googleId")
-      .populate("library");
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    res.status(200).json({ success: true, data: user });
-  } catch (err) {
-    res.status(500).json({ message: "Server Error" });
-  }
-};
-
 exports.updateProfile = async (req, res) => {
   try {
-    const updates = req.body;
+    console.log("🟡 REQ.USER:", req.user);
+    console.log("🟡 BODY:", req.body);
 
-    const userId = await User.findByIdAndUpdate(
+    const u = req.body;
+
+    const mapped = {
+      fullName: u.fullName,
+      username: u.username,
+
+      // 🔥 SCHEMA KE ACCORDING NESTED PATH
+      "profile.bio": u.bio,
+      "profile.location": u.location,
+
+      "readingPreferences.readingGoalPerYear":
+        u["readingPreferences.readingGoalPerYear"],
+
+      "integrations.kindleConnected": u["integrations.kindleConnected"],
+    };
+
+    const user = await User.findByIdAndUpdate(
       req.user.id,
-      { $set: updates },
+      { $set: mapped },
       { new: true, runValidators: true },
     ).select("-password");
 
-    res.status(200).json({
+    console.log("🟢 UPDATED USER:", user);
+
+    res.json({
       success: true,
-      message: "Profile updated successfully",
-      data: userId,
+      data: user,
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.log("❌ ERROR:", err);
+
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
 };
 
@@ -297,7 +303,6 @@ exports.getUserProfile = async (req, res) => {
       });
     }
 
-    // extra stats
     const postsCount = await Post.countDocuments({
       userId: userId,
     });
@@ -308,9 +313,14 @@ exports.getUserProfile = async (req, res) => {
         _id: user._id,
         username: user.username,
         fullName: user.fullName,
-        bio: user.bio || "",
-        location: user.location || "",
-        profilePic: user.profilePic || null,
+
+        // ✅ CORRECT PLACE
+        profile: {
+          bio: user.profile?.bio || "",
+          location: user.profile?.location || "",
+          profileImage: user.profile?.profileImage || "",
+        },
+
         followers: user.followers || [],
         following: user.following || [],
         postsCount,

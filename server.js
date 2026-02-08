@@ -12,6 +12,9 @@ const { toggleLike } = require("./controllers/post_controller");
 const auth = require("./middleware/auth");
 const profileRoutes = require("./routes/profile_routes");
 const review = require("./models/review");
+const clubRoutes = require("./routes/club_routes");
+const clubpostRoutes = require("./routes/clubPost_routes");
+const clubcommentRoutes = require("./routes/postComment_routes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -28,7 +31,9 @@ app.use("/comments", commentRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/uploads", express.static("uploads"));
 app.use("/api/review", require("./routes/review_route"));
-
+app.use("/api/clubs", clubRoutes);
+app.use("/api/clubs", clubpostRoutes);
+app.use("/api/clubs", clubcommentRoutes);
 app.get("/", (req, res) => {
   res.json({
     success: true,

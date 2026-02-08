@@ -1,6 +1,6 @@
-const mongooose = require("mongoose");
+const mongoose = require("mongoose");
 
-const ClubRequestSchema = new mongooose.Schema(
+const ClubRequestSchema = new mongoose.Schema(
   {
     clubId: {
       type: mongoose.Schema.Types.ObjectId,

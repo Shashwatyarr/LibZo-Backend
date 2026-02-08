@@ -30,6 +30,6 @@ const BanSystemSchema = new mongoose.Schema({
   },
 });
 
-ClubBanSchema.index({ clubId: 1, userId: 1 });
+BanSystemSchema.index({ clubId: 1, userId: 1 });
 
 module.exports = mongoose.model("Ban", BanSystemSchema);

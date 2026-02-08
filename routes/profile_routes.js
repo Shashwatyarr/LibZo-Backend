@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const upload = require("../middleware/upload_memory");
+
 const {
   getProfile,
   updateProfile,
@@ -17,15 +18,20 @@ const {
 
 const authMiddleware = require("../middleware/auth");
 
-router.get("/", authMiddleware, getProfile);
+//router.get("/", authMiddleware, getProfile);
+
 router.put("/update", authMiddleware, updateProfile);
+
 router.get("/completion", authMiddleware, getProfileCompleteness);
+
 router.get("/library", authMiddleware, getUserLibrary);
 
 router.post("/follow/:userId", authMiddleware, followUser);
+
 router.post("/unfollow/:userId", authMiddleware, unfollowUser);
 
 router.get("/followers/:userId", getFollowers);
+
 router.get("/following/:userId", getFollowing);
 
 router.post(
@@ -34,9 +40,10 @@ router.post(
   upload.single("profileImage"),
   uploadProfilePhoto,
 );
-router.get("/:id", authMiddleware, getUserProfile);
-
-// GET USER POSTS
+// ✅ PEHLE specific
 router.get("/posts/:id", authMiddleware, getUserPosts);
+
+// ✅ LAST me generic
+router.get("/:id", authMiddleware, getUserProfile);
 
 module.exports = router;
