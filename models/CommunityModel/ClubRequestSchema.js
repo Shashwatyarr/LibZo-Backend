@@ -30,4 +30,4 @@ const ClubRequestSchema = new mongoose.Schema(
 
 ClubRequestSchema.index({ clubId: 1, status: 1 });
 
-module.export = mongoose.model("ClubRequest", ClubRequestSchema);
+module.exports = mongoose.model("ClubRequest", ClubRequestSchema);

@@ -4,7 +4,7 @@ const router = express.Router();
 const auth = require("../middleware/auth");
 const clubCtrl = require("../controllers/club_contorllers");
 const upload = require("../middleware/upload_memory");
-const getImageCached = require("../utils/cache_proxy");
+const { fetchFromTelegram } = require("../utils/telegram_media");
 const {
   isMember,
   hasRoles,
@@ -41,13 +41,18 @@ router.get("/cover/:fileId", async (req, res) => {
   try {
     const { fileId } = req.params;
 
-    const data = await getImageCached(fileId);
+    const buffer = await fetchFromTelegram(fileId);
 
-    res.set("Content-Type", data.mime);
+    // Telegram direct binary deta hai
+    res.set("Content-Type", "image/jpeg");
 
-    res.send(data.buffer);
+    res.send(buffer);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.log("COVER FETCH ERROR:", err.message);
+
+    res.status(500).json({
+      message: err.message,
+    });
   }
 });
 

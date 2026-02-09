@@ -3,15 +3,15 @@ const ClubMember = require("../models/CommunityModel/ClubMemberSchema");
 const ClubRequest = require("../models/CommunityModel/ClubRequestSchema");
 const { uploadImageToTelegram } = require("../utils/telegram_media");
 
+// ================= CREATE CLUB =================
+
 exports.createClub = async (req, res) => {
   try {
     const { name, description, genre, type } = req.body;
 
     let coverImage = null;
 
-    // ───── HANDLE COVER UPLOAD ─────
     if (req.files && req.files.length > 0) {
-      // only 1 cover allowed
       const file = req.files[0];
 
       const tgResult = await uploadImageToTelegram(file);
@@ -29,7 +29,7 @@ exports.createClub = async (req, res) => {
       description,
       genre,
       type,
-      coverImage, // 👈 NEW
+      coverImage,
       createdBy: req.user.id,
     });
 
@@ -51,11 +51,12 @@ exports.createClub = async (req, res) => {
   }
 };
 
-//join club
+// ================= JOIN CLUB =================
 
 exports.joinClub = async (req, res) => {
   try {
     const { clubId } = req.params;
+
     const club = await Club.findById(clubId);
 
     if (!club) {
@@ -65,7 +66,7 @@ exports.joinClub = async (req, res) => {
     }
 
     const member = await ClubMember.findOne({
-      clubId: clubId,
+      clubId,
       userID: req.user.id,
     });
 
@@ -75,39 +76,46 @@ exports.joinClub = async (req, res) => {
       });
     }
 
+    // ===== PUBLIC CLUB =====
     if (club.type === "public") {
       await ClubMember.create({
-        clubID: clubId,
+        clubId: clubId,
         userID: req.user.id,
         role: "member",
       });
+
       await Club.findByIdAndUpdate(clubId, {
         $inc: { "stats.members": 1 },
       });
+
       return res.json({
         message: "Joined Successfully",
       });
-
-      await ClubRequest.cerate({
-        clubId: clubId,
-        userId: req.user.id,
-        status: "pending",
-      });
-
-      res.json({
-        message: "Join request sent",
-      });
     }
+
+    // ===== PRIVATE CLUB =====
+    await ClubRequest.create({
+      clubId: clubId,
+      userId: req.user.id,
+      status: "pending",
+    });
+
+    res.json({
+      message: "Join request sent",
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+// ================= HANDLE REQUEST =================
+
 exports.handleRequest = async (req, res) => {
   try {
-    const { requestID } = req.params;
+    const { requestId } = req.params;
     const { action } = req.body;
-    const request = await ClubRequest.findById(requesId);
+
+    const request = await ClubRequest.findById(requestId);
 
     if (!request) {
       return res.status(404).json({
@@ -118,16 +126,19 @@ exports.handleRequest = async (req, res) => {
     if (action === "approve") {
       await ClubMember.create({
         clubId: request.clubId,
-        user: request.userId,
+        userID: request.userId,
         role: "member",
       });
+
       await Club.findByIdAndUpdate(request.clubId, {
-        $inc: { "stats.member": 1 },
+        $inc: { "stats.members": 1 },
       });
+
       request.status = "approved";
     } else {
       request.status = "rejected";
     }
+
     request.actionBY = req.user.id;
     request.actionAt = new Date();
 
@@ -141,7 +152,7 @@ exports.handleRequest = async (req, res) => {
   }
 };
 
-//get clubs
+// ================= GET CLUBS =================
 
 exports.getClubsForUser = async (req, res) => {
   try {
@@ -166,7 +177,7 @@ exports.getClubsForUser = async (req, res) => {
   }
 };
 
-// ============== GET SINGLE CLUB DETAIL ==============
+// ================= SINGLE CLUB =================
 
 exports.getSingleClub = async (req, res) => {
   try {
@@ -180,26 +191,21 @@ exports.getSingleClub = async (req, res) => {
       });
     }
 
-    // Check membership
     const member = await ClubMember.findOne({
-      clubId: clubId,
+      clubId,
       userID: req.user.id,
     });
 
-    // Check pending request
     const request = await ClubRequest.findOne({
-      clubId: clubId,
+      clubId,
       userId: req.user.id,
       status: "pending",
     });
 
     let relation = "not_joined";
 
-    if (member) {
-      relation = "member";
-    } else if (request) {
-      relation = "requested";
-    }
+    if (member) relation = "member";
+    else if (request) relation = "requested";
 
     res.json({
       club,
@@ -210,12 +216,15 @@ exports.getSingleClub = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// ================= GET REQUESTS =================
+
 exports.getRequests = async (req, res) => {
   try {
     const { clubId } = req.params;
 
     const requests = await ClubRequest.find({
-      clubId: clubId,
+      clubId,
       status: "pending",
     })
       .populate("userId", "fullName username profile.profileImage")
