@@ -21,6 +21,14 @@ const ClubSchema = new mongoose.Schema(
       enum: ["public", "private", "paid"],
       default: "public",
     },
+
+    coverImage: {
+      file_id: String,
+      width: Number,
+      height: Number,
+      size: Number,
+    },
+
     currentBook: {
       bookId: String,
       title: String,

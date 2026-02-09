@@ -1,18 +1,44 @@
 const Club = require("../models/CommunityModel/ClubSchema");
 const ClubMember = require("../models/CommunityModel/ClubMemberSchema");
 const ClubRequest = require("../models/CommunityModel/ClubRequestSchema");
+const { uploadImageToTelegram } = require("../utils/telegram_media");
 
 exports.createClub = async (req, res) => {
   try {
+    const { name, description, genre, type } = req.body;
+
+    let coverImage = null;
+
+    // ───── HANDLE COVER UPLOAD ─────
+    if (req.files && req.files.length > 0) {
+      // only 1 cover allowed
+      const file = req.files[0];
+
+      const tgResult = await uploadImageToTelegram(file);
+
+      coverImage = {
+        file_id: tgResult.file_id,
+        width: tgResult.width,
+        height: tgResult.height,
+        size: tgResult.size,
+      };
+    }
+
     const club = await Club.create({
-      ...req.body,
+      name,
+      description,
+      genre,
+      type,
+      coverImage, // 👈 NEW
       createdBy: req.user.id,
     });
+
     await ClubMember.create({
       clubId: club._id,
       userID: req.user.id,
       role: "admin",
     });
+
     club.stats.members = 1;
     await club.save();
 
@@ -119,9 +145,7 @@ exports.handleRequest = async (req, res) => {
 
 exports.getClubsForUser = async (req, res) => {
   try {
-    const publicClubs = await Club.find({
-      type: "public",
-    });
+    const publicClubs = await Club.find({});
 
     const myMemberships = await ClubMember.find({
       userID: req.user.id,
@@ -181,6 +205,25 @@ exports.getSingleClub = async (req, res) => {
       club,
       relation,
       myRole: member ? member.role : null,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+exports.getRequests = async (req, res) => {
+  try {
+    const { clubId } = req.params;
+
+    const requests = await ClubRequest.find({
+      clubId: clubId,
+      status: "pending",
+    })
+      .populate("userId", "fullName username profile.profileImage")
+      .sort({ requestedAt: -1 });
+
+    res.json({
+      success: true,
+      requests,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
