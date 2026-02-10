@@ -6,7 +6,7 @@ exports.isMember = async (req, res, next) => {
     const { clubId } = req.params;
     const member = await ClubMember.findOne({
       clubId: clubId,
-      userId: req.user.id,
+      userID: req.user.id,
     });
     if (!member) {
       return res.status(403).json({
