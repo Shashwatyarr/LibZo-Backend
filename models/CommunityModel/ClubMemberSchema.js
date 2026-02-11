@@ -30,6 +30,6 @@ const ClubMemberSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-ClubMemberSchema.index({ clubId: 1, userId: 1 });
+ClubMemberSchema.index({ clubId: 1, userID: 1 });
 
 module.exports = mongoose.model("ClubMember", ClubMemberSchema);

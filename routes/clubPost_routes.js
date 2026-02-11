@@ -3,11 +3,18 @@ const router = express.Router();
 
 const auth = require("../middleware/auth");
 const postCtrl = require("../controllers/clubPost.controller");
-
+const upload = require("../middleware/upload_memory");
 const { isMember, isBanned } = require("../middleware/club.middleware");
 
 // ============== CREATE POST ==============
-router.post("/:clubId/posts", auth, isMember, isBanned, postCtrl.createPost);
+router.post(
+  "/:clubId/posts",
+  auth,
+  isMember,
+  isBanned,
+  upload.array("cover", 1),
+  postCtrl.createPost,
+);
 
 // ============== GET CLUB FEED ==============
 router.get("/:clubId/posts", auth, isMember, postCtrl.getPosts);
@@ -20,6 +27,14 @@ router.patch(
   isMember,
   isBanned,
   postCtrl.upvotePost,
+);
+
+router.patch(
+  "/:clubId/posts/:postId/downvote",
+  auth,
+  isMember,
+  isBanned,
+  postCtrl.downvotePost,
 );
 
 // ============== DELETE POST ==============

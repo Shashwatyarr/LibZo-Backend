@@ -16,6 +16,7 @@ exports.uploadImageToTelegram = async (file) => {
   form.append("chat_id", CHANNEL_ID);
   form.append("photo", file.buffer, {
     filename: file.originalname,
+    contentType: file.mimetype || "image/jpeg",
   });
   const response = await axios.post(`${TG_API}/sendPhoto`, form, {
     headers: form.getHeaders(),

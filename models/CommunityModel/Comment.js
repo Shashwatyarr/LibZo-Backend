@@ -6,7 +6,7 @@ const PostCommentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "ClubPost",
     },
-    userId: {
+    userID: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },

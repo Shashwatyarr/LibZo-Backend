@@ -6,7 +6,7 @@ const ClubPostSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Club",
     },
-    userId: {
+    userID: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
@@ -22,10 +22,26 @@ const ClubPostSchema = new mongoose.Schema(
       downvotes: { type: Number, default: 0 },
       comments: { type: Number, default: 0 },
     },
+    downvotedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+
+    upvotedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true },
 );
 
 ClubPostSchema.index({ clubId: 1, createdAt: -1 });
+
+// 🚀 USER PROFILE POSTS
+ClubPostSchema.index({ userID: 1, createdAt: -1 });
 
 module.exports = mongoose.model("ClubPost", ClubPostSchema);

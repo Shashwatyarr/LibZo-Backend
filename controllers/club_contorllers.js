@@ -96,7 +96,7 @@ exports.joinClub = async (req, res) => {
     // ===== PRIVATE CLUB =====
     await ClubRequest.create({
       clubId: clubId,
-      userId: req.user.id,
+      userID: req.user.id,
       status: "pending",
     });
 
@@ -126,7 +126,7 @@ exports.handleRequest = async (req, res) => {
     if (action === "approve") {
       await ClubMember.create({
         clubId: request.clubId,
-        userID: request.userId,
+        userID: request.userID,
         role: "member",
       });
 
@@ -163,7 +163,7 @@ exports.getClubsForUser = async (req, res) => {
     }).populate("clubId");
 
     const requests = await ClubRequest.find({
-      userId: req.user.id,
+      userID: req.user.id,
       status: "pending",
     }).populate("clubId");
 
@@ -198,7 +198,7 @@ exports.getSingleClub = async (req, res) => {
 
     const request = await ClubRequest.findOne({
       clubId,
-      userId: req.user.id,
+      userID: req.user.id,
       status: "pending",
     });
 

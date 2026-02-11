@@ -6,7 +6,7 @@ const ClubRequestSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Club",
     },
-    userId: {
+    userID: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
