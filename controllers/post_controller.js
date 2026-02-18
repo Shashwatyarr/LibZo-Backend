@@ -74,26 +74,25 @@ exports.createPost = async (req, res) => {
 // ───── GET POSTS ─────
 exports.getPosts = async (req, res) => {
   try {
-    const page = Number(req.query.page) || 1;
+    const page = parseInt(req.query.page) || 1;
     const limit = 5;
 
     const posts = await Post.find()
-
+      .select("userId text images likes createdAt")
       .populate("userId", "username fullName profilePicture")
-
       .sort({ createdAt: -1 })
-
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .lean(); // 🔥 fastest
 
-    res.json({
+    return res.json({
       success: true,
       page,
       count: posts.length,
       posts,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: `Server Error: ${err.message}`,
     });
