@@ -14,6 +14,7 @@ const postSchema = new mongoose.Schema(
     images: [
       {
         file_id: String,
+        url: String,
         width: Number,
         height: Number,
         size: Number,

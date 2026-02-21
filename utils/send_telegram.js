@@ -57,18 +57,18 @@ Do NOT share with anyone.`,
   );
 };
 
-bot.command("start", async (ctx) => {
-  const libzoUsername = ctx.match?.trim();
+// bot.command("start", async (ctx) => {
+//   const libzoUsername = ctx.match?.trim();
 
-  const chatId = ctx.chat.id;
+//   const chatId = ctx.chat.id;
 
-  await User.updateOne(
-    { username: libzoUsername },
-    {
-      "telegram.chatId": chatId.toString(),
-      "telegram.linkedAt": new Date(),
-    },
-  );
+//   await User.updateOne(
+//     { username: libzoUsername },
+//     {
+//       "telegram.chatId": chatId.toString(),
+//       "telegram.linkedAt": new Date(),
+//     },
+//   );
 
-  await ctx.reply("Connected! Ab OTP yahin aayega.");
-});
+//   await ctx.reply("Connected! Ab OTP yahin aayega.");
+// });

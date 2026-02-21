@@ -8,7 +8,6 @@ exports.createPost = async (req, res) => {
     const { text } = req.body;
     const userId = req.user.id;
 
-    // 1. Text validation
     if (!text || text.trim() === "") {
       return res.status(400).json({
         success: false,
@@ -18,9 +17,7 @@ exports.createPost = async (req, res) => {
 
     let images = [];
 
-    // 2. Image handling
     if (req.files && req.files.length > 0) {
-      // max 4 rule
       if (req.files.length > 4) {
         return res.status(400).json({
           success: false,
@@ -28,20 +25,21 @@ exports.createPost = async (req, res) => {
         });
       }
 
-      // ───── ATOMIC UPLOAD GUARD ─────
       try {
         for (const file of req.files) {
+          console.log("Uploading Files...");
           const tgResult = await uploadImageToTelegram(file);
+          console.log("TG Result: ", tgResult);
 
           images.push({
             file_id: tgResult.file_id,
+            url: tgResult.url,
             width: tgResult.width,
             height: tgResult.height,
             size: tgResult.size,
           });
         }
       } catch (uploadErr) {
-        // Agar ek bhi image fail → post nahi banega
         return res.status(502).json({
           success: false,
           message: "Image upload failed, please retry",
@@ -49,7 +47,6 @@ exports.createPost = async (req, res) => {
       }
     }
 
-    // 3. Create Post
     const newPost = new Post({
       userId,
       text,
@@ -83,7 +80,7 @@ exports.getPosts = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
-      .lean(); // 🔥 fastest
+      .lean();
 
     return res.json({
       success: true,
